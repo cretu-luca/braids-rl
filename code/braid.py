@@ -8,6 +8,9 @@ class Braid:
 
     def __len__(self):
         return len(self.word)
+    
+    def copy(self):
+        return Braid(list(self.word), self.n_strands)
 
     def reduce(self):
         stack = []
@@ -20,50 +23,35 @@ class Braid:
             else:
                 stack.append(generator)
 
+        original_len = len(self.word)
         self.word = stack
-        return changed
-
-    def get_commutation_moves(self):
-        indices = []
-
-        for i in range(len(self.word) - 1):
-            a = abs(self.word[i])
-            b = abs(self.word[i+1])
-
-            if abs(a - b) >= 2:
-                indices.append(i)
-
-        return indices
+        return len(self.word) < original_len
 
     def apply_commutation(self, index):
-        valid_indices = self.get_commutation_moves()
-        if index not in valid_indices:
-            return False
-
-        self.word[index], self.word[index+1] = self.word[index+1], self.word[index]
-        return True
-
-    def get_braid_relation_moves(self):
-        indices = []
-        for i in range(len(self.word) - 2):
-            a = self.word[i]
-            b = self.word[i+1]
-            c = self.word[i+2]
-            
-            if a == c:
-                if abs(abs(a) - abs(b)) == 1:
-                    indices.append(i)
-        return indices
-
-    def apply_braid_relation(self, index):
-        valid_indices = self.get_braid_relation_moves()
-        if index not in valid_indices:
+        if index < 0 or index >= len(self.word) - 1:
             return False
             
         a = self.word[index]
         b = self.word[index+1]
         
-        self.word[index] = b
-        self.word[index+1] = a
-        self.word[index+2] = b
-        return True
+        if abs(abs(a) - abs(b)) >= 2:
+            self.word[index], self.word[index+1] = b, a
+            return True
+        return False
+
+    def apply_braid_relation(self, index):
+        if index < 0 or index >= len(self.word) - 2:
+            return False
+            
+        a = self.word[index]
+        b = self.word[index+1]
+        c = self.word[index+2]
+        
+        if a == c:
+            if abs(abs(a) - abs(b)) == 1:
+                self.word[index] = b
+                self.word[index+1] = a
+                self.word[index+2] = b
+                return True
+            
+        return False
