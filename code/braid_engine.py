@@ -18,7 +18,7 @@ class BraidEngine:
                 insert_pos = random.randint(0, len(word))
 
             word.insert(insert_pos, gen)
-            word.insert(insert_pos + 1, gen)
+            word.insert(insert_pos + 1, -gen)
 
 
         return Braid(word, self.n_strands)
