@@ -8,7 +8,7 @@ from .config import Configuration
 from .braid_generator import BraidGenerator
 
 class BraidEnv(gym.Env):
-    def __init__(self, dataset_path: str, n_strands: int = Configuration.N_STRANDS, max_len: int = Configuration.MAX_LEN):
+    def __init__(self, dataset_path: str, n_strands, max_len, config: Configuration):
         super(BraidEnv, self).__init__()
 
         self.n_strands = n_strands
@@ -19,6 +19,8 @@ class BraidEnv(gym.Env):
         self.stuck_steps = 0
 
         self.dataset = BraidGenerator.load_dataset(dataset_path)
+
+        self.config = config
 
         self.action_space = spaces.MultiDiscrete([4, max_len])
 
@@ -62,7 +64,7 @@ class BraidEnv(gym.Env):
 
         if is_reversal:
             self.stuck_steps += 1
-            return self._get_obs(), Configuration.REWARD_LOOP, False, False, {"success": False}
+            return self._get_obs(), self.config.REWARD_LOOP, False, False, {"success": False}
 
         if move_type == 0:
             success = self.current_braid.apply_commutation(index)
@@ -75,28 +77,28 @@ class BraidEnv(gym.Env):
                 gen = random.randint(1, self.n_strands - 1)
                 success = self.current_braid.insert_canceling_pair(index, gen)
 
-        reward = Configuration.REWARD_STEP
+        reward = self.config.REWARD_STEP
 
         if not success:
             self.stuck_steps += 1
-            reward += Configuration.REWARD_INVALID - (0.1 * self.stuck_steps)
+            reward += self.config.REWARD_INVALID - (0.1 * self.stuck_steps)
         else:
             self.stuck_steps = 0
             self.last_action = action 
             new_len = len(self.current_braid)
             
             if new_len < prev_len:
-                reward += Configuration.REWARD_SHRINK
+                reward += self.config.REWARD_SHRINK
             elif new_len > prev_len:
-                reward += Configuration.REWARD_GROW
+                reward += self.config.REWARD_GROW
             else:
                 reward += 0.1
 
             if new_len == 0:
-                return self._get_obs(), Configuration.REWARD_SOLVED, True, False, {"success": True}
+                return self._get_obs(), self.config.REWARD_SOLVED, True, False, {"success": True}
 
         truncated = len(self.current_braid) >= self.max_len
         if truncated:
-            reward += Configuration.REWARD_INVALID * 5 
+            reward += self.config.REWARD_INVALID * 5
 
         return self._get_obs(), reward, False, truncated, {"success": success}

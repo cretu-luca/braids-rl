@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 class Braid:
     def __init__(self, word: list[int], n_strands: int):
@@ -24,7 +24,7 @@ class Braid:
         self.word.insert(index + 1, -generator)
         return True
 
-    def remove_pair_at_index(self, index: int):
+    def remove_pair_at_index(self, index: int) -> bool:
         if index < 0 or index >= len(self.word) - 1:
             return False
         

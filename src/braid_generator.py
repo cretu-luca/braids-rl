@@ -1,15 +1,16 @@
-from braid import Braid
+import ast
 import random
 from typing import List, Optional
-from config import Configuration
-import ast
+
+from .braid import Braid
+from .config import Configuration
 
 class BraidGenerator:
-    def __init__(self, n_strands: int):
+    def __init__(self, n_strands: int, config: Configuration):
         self.n_strands = n_strands
+        self.config = config
 
     def generate_braid(self, crossings: int, difficulty: int) -> Braid:
-
         braid = Braid([], self.n_strands)
 
         while len(braid) < crossings:
@@ -53,7 +54,7 @@ class BraidGenerator:
         print(f"generating dataset of {count} braids with {crossings} crossings of difficulty {difficulty}")
 
         if not filepath: 
-            filepath = f"{Configuration.DATA_DIR}braids_{self.n_strands}st_{crossings}cr_{difficulty}dif"
+            filepath = f"{self.config.DATA_DIR}braids_{self.n_strands}st_{crossings}cr_{difficulty}dif"
 
         with open(filepath, 'w') as file:
             file.write(f"{count},{self.n_strands},{crossings},{difficulty}\n")
@@ -83,6 +84,3 @@ class BraidGenerator:
                     continue
 
         return braids
-
-b = BraidGenerator(3)
-b.generate_dataset(count=10, crossings=5, difficulty=5)
