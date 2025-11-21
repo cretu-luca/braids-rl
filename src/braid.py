@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 class Braid:
     def __init__(self, word: list[int], n_strands: int):
         self.word = list(word)
@@ -9,12 +11,12 @@ class Braid:
     def copy(self):
         return Braid(list(self.word), self.n_strands)
 
-    def get_padded_word(self, max_len):
+    def get_padded_word(self, max_len: int) -> List[int]:
         w = self.word[:max_len]
         padding = [0] * (max_len - len(w))
         return w + padding
 
-    def insert_canceling_pair(self, index, generator):
+    def insert_canceling_pair(self, index: int, generator: int) -> bool:
         if index < 0 or index > len(self.word):
             return False
         
@@ -22,7 +24,7 @@ class Braid:
         self.word.insert(index + 1, -generator)
         return True
 
-    def remove_pair_at_index(self, index):
+    def remove_pair_at_index(self, index: int):
         if index < 0 or index >= len(self.word) - 1:
             return False
         
