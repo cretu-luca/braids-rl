@@ -12,9 +12,9 @@ class Braid:
         return Braid(list(self.word), self.n_strands)
 
     def get_padded_word(self, max_len: int) -> List[int]:
-        w = self.word[:max_len]
-        padding = [0] * (max_len - len(w))
-        return w + padding
+        word = self.word[:max_len]
+        padding = [0] * (max_len - len(word))
+        return word + padding
 
     def insert_canceling_pair(self, index: int, generator: int) -> bool:
         if index < 0 or index > len(self.word):
@@ -50,11 +50,11 @@ class Braid:
         if index < 0 or index >= len(self.word) - 1:
             return False
             
-        a = self.word[index]
-        b = self.word[index+1]
+        gen_0 = self.word[index]
+        gen_1 = self.word[index + 1]
         
-        if abs(abs(a) - abs(b)) >= 2:
-            self.word[index], self.word[index+1] = b, a
+        if abs(abs(gen_0) - abs(gen_1)) >= 2:
+            self.word[index], self.word[index + 1] = gen_1, gen_0
             return True
         return False
 
@@ -62,15 +62,15 @@ class Braid:
         if index < 0 or index >= len(self.word) - 2:
             return False
             
-        a = self.word[index]
-        b = self.word[index+1]
-        c = self.word[index+2]
+        gen_0 = self.word[index]
+        gen_1 = self.word[index+1]
+        gen_2 = self.word[index+2]
         
-        if a == c and abs(abs(a) - abs(b)) == 1:
-            if (a > 0 and b > 0) or (a < 0 and b < 0):
-                self.word[index] = b
-                self.word[index+1] = a
-                self.word[index+2] = b
+        if gen_0 == gen_2 and abs(abs(gen_0) - abs(gen_1)) == 1:
+            if (gen_0 > 0 and gen_1 > 0) or (gen_0 < 0 and gen_1 < 0):
+                self.word[index] = gen_1
+                self.word[index+1] = gen_0
+                self.word[index+2] = gen_1
                 return True
             
         return False
