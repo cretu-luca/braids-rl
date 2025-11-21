@@ -1,31 +1,33 @@
 import numpy as np
 import random
 
-from gymnasium import gym, spaces
+import gymnasium as gym
+from gymnasium import spaces
 
-from braid import Braid
-from config import Configuration
+from .braid import Braid
+from .config import Configuration
+from .braid_generator import BraidGenerator
 
 class BraidEnv(gym.Env):
-    def __init__(self, n_strands: int, max_len: int):
+    def __init__(self, dataset_path: str, n_strands: int = Configuration.N_STRANDS, max_len: int = Configuration.MAX_LEN):
         super().__init__()
 
         self.n_strands = n_strands
         self.max_len = max_len
 
         self.current_braid = None
-        self.dataset = None
+        self.dataset = BraidGenerator.load_dataset(dataset_path)
 
         self.action_space = spaces.MultiDiscrete([4, max_len])
 
         self.observation_space = spaces.Box(
             low=-(n_strands-1), 
             high=max(n_strands-1, 100), 
-            shape=(max_len + 1,), 
+            shape=(max_len,), 
             dtype=np.int32
         )
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         super().reset()
 
         if not self.dataset:
@@ -37,7 +39,7 @@ class BraidEnv(gym.Env):
 
         return self.get_obs(), {}
 
-    def get_state(self):
+    def get_obs(self):
         state = np.zeros(self.max_len)
         word = self.current_braid.word
 
