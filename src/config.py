@@ -2,10 +2,11 @@ import os
 
 class Configuration:
     N_STRANDS = 3
+    MAX_LEN = 20
     
-    DATA_DIR = "data/"
-    MODEL_DIR = "/model/"
-    LOG_DIR = "/log/"
+    DATA_DIR = "./data/"
+    MODEL_DIR = "./model/"
+    LOG_DIR = "./log/"
 
     LEARNING_RATE = 0.0003
     ENTROPY_COEF = 0.01
