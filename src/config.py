@@ -30,5 +30,5 @@ class Configuration:
         return os.path.join(self.DATA_DIR, f"{level_name}.txt")
 
     def get_model_path(self, name):
-        os.makedirs(Configuration.MODEL_DIR, exist_ok=True)
-        return os.path.join(Configuration.MODEL_DIR, name)
+        os.makedirs(self.MODEL_DIR, exist_ok=True)
+        return os.path.join(self.MODEL_DIR, name)
