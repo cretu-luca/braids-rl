@@ -3,11 +3,13 @@ import os
 class Configuration:
     def __init__(self, n_strands = 3, max_len = 20, learning_rate = 0.0003, entropy_coef = 0.01, total_timesteps = 300_000, 
                  reward_step = -0.05, reward_invalid = -1.0, reward_loop = -2.0, reward_solved = 20.0, reward_shrink = 1.0,
-                 reward_grow = -1.0, max_inference_steps = 50, DATA_DIR = "./data/", MODEL_DIR = "./model/", LOG_DIR = "./log/"):
+                 reward_grow = -1.0, max_inference_steps = 50, data_dir = "./data/", model_dir = "./models/", log_dir = "./logs/", 
+                 metrics_dir = "./metrics/"):
         
-        self.DATA_DIR = DATA_DIR
-        self.MODEL_DIR = MODEL_DIR
-        self.LOG_DIR = LOG_DIR
+        self.DATA_DIR = data_dir
+        self.MODEL_DIR = model_dir
+        self.LOG_DIR = log_dir
+        self.METRICS_DIR = metrics_dir
 
         self.N_STRANDS = n_strands
         self.MAX_LEN = max_len

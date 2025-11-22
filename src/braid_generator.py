@@ -1,6 +1,7 @@
 import ast
 import random
 from typing import List, Optional
+from sage.all import BraidGroup
 
 from .braid import Braid
 from .config import Configuration
@@ -9,6 +10,7 @@ class BraidGenerator:
     def __init__(self, n_strands: int, config: Configuration):
         self.n_strands = n_strands
         self.config = config
+        self.B = BraidGroup(n_strands)
 
     def generate_braid(self, crossings: int, difficulty: int) -> Braid:
         braid = Braid([], self.n_strands)
@@ -59,9 +61,14 @@ class BraidGenerator:
         with open(filepath, 'w') as file:
             file.write(f"{count},{self.n_strands},{crossings},{difficulty}\n")
 
-            for _ in range(count):
+            generated = 0
+            while generated < count:
                 word = self.generate_braid(crossings, difficulty).word
-                file.write(f"{word}\n")
+                braid = self.B(word)
+
+                if braid.is_one():
+                    generated += 1
+                    file.write(f"{word}\n")
 
         print("done")
 
