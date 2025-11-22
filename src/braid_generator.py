@@ -13,42 +13,50 @@ class BraidGenerator:
         self.B = BraidGroup(n_strands)
 
     def generate_braid(self, crossings: int, difficulty: int) -> Braid:
-        braid = Braid([], self.n_strands)
+        valid = False
 
-        while len(braid) < crossings:
-            generator = random.randint(1, self.n_strands - 1)
-            index = random.randint(0, len(braid))
+        while not valid:
+            braid = Braid([], self.n_strands)
 
-            braid.insert_canceling_pair(index, generator)
-        
-        moves = 0
-        attempts = 0
-        max_attempts = 1000
+            while len(braid) < crossings:
+                generator = random.randint(1, self.n_strands - 1)
+                index = random.randint(0, len(braid))
 
-        while moves < difficulty and attempts < max_attempts:
-            possible_moves = []
-            attempts += 1
+                braid.insert_canceling_pair(index, generator)
+            
+            moves = 0
+            attempts = 0
+            max_attempts = 1000
 
-            for i in range(len(braid) - 2):
-                gen_0, gen_1, gen_2 = braid.word[i], braid.word[i + 1], braid.word[i + 2]
+            while moves < difficulty and attempts < max_attempts:
+                possible_moves = []
+                attempts += 1
 
-                if gen_0 == gen_2 and abs(abs(gen_0) - abs(gen_1)) == 1:
-                    if gen_0 * gen_1 > 0: # same sign
-                        possible_moves.append(('r3', i))
+                for i in range(len(braid) - 2):
+                    gen_0, gen_1, gen_2 = braid.word[i], braid.word[i + 1], braid.word[i + 2]
 
-            for i in range(len(braid) - 1):
-                if abs(abs(braid.word[i]) - abs(braid.word[i+1])) >= 2:
-                    possible_moves.append(('commute', i))
+                    if gen_0 == gen_2 and abs(abs(gen_0) - abs(gen_1)) == 1:
+                        if gen_0 * gen_1 > 0: # same sign
+                            possible_moves.append(('r3', i))
 
-            if possible_moves: 
-                move, index = random.choice(possible_moves)
+                for i in range(len(braid) - 1):
+                    if abs(abs(braid.word[i]) - abs(braid.word[i+1])) >= 2:
+                        possible_moves.append(('commute', i))
 
-                if move == 'r3':
-                    braid.apply_braid_relation(index)
-                else:
-                    braid.apply_commutation(index)
+                if possible_moves: 
+                    move, index = random.choice(possible_moves)
 
-                moves += 1
+                    if move == 'r3':
+                        braid.apply_braid_relation(index)
+                    else:
+                        braid.apply_commutation(index)
+
+                    moves += 1
+
+            sage_braid = self.B(braid.word)
+
+            if sage_braid.is_one():
+                valid = True
 
         return braid
 
