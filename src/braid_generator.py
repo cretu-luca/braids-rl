@@ -11,10 +11,12 @@ from .braid import Braid
 from .config import Configuration
 
 class BraidGenerator:
-    def __init__(self, n_strands: int, config: Configuration):
+    def __init__(self, n_strands: int, config: Configuration, seed: Optional[int] = None):
         self.n_strands = n_strands
         self.config = config
         self.B = BraidGroup(n_strands)
+
+        self.rng = random.Random(seed)
 
     def generate_braid(self, crossings: int, difficulty: int) -> Braid:
         valid = False
@@ -23,8 +25,8 @@ class BraidGenerator:
             braid = Braid([], self.n_strands)
 
             while len(braid) < crossings:
-                generator = random.randint(1, self.n_strands - 1)
-                index = random.randint(0, len(braid))
+                generator = self.rng.randint(1, self.n_strands - 1)
+                index = self.rng.randint(0, len(braid))
 
                 braid.insert_canceling_pair(index, generator)
             
@@ -48,7 +50,7 @@ class BraidGenerator:
                         possible_moves.append(('commute', i))
 
                 if possible_moves: 
-                    move, index = random.choice(possible_moves)
+                    move, index = self.rng.choice(possible_moves)
 
                     if move == 'r3':
                         braid.apply_braid_relation(index)
