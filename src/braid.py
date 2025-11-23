@@ -15,9 +15,33 @@ class Braid:
         word = self.word[:max_len]
         padding = [0] * (max_len - len(word))
         return word + padding
+    
+    def check_insert(self, index: int) -> bool:
+        return 0 <= index <= len(self.word)
+    
+    def check_remove_pair(self, index: int) -> bool:
+        if index < 0 or index >= len(self.word) - 1:
+            return False
+        return self.word[index] == -self.word[index + 1]
+    
+    def check_commutation(self, index: int) -> bool:
+        if index < 0 or index >= len(self.word) - 1:
+            return False
+        
+        gen_0, gen_1 = self.word[index], self.word[index + 1]
+        return abs(abs(gen_0) - abs(gen_1)) >= 2
+    
+    def check_braid_relation(self, index: int) -> bool:
+        if index < 0 or index >= len(self.word) - 2:
+            return False
+        
+        gen_0, gen_1, gen_2 = self.word[index], self.word[index + 1], self.word[index + 2]
+        return gen_0 == gen_2 and \
+                abs(abs(gen_0) - abs(gen_1)) == 1 and \
+                ((gen_0 > 0 and gen_1 > 0) or (gen_0 < 0 and gen_1 < 0))
 
     def insert_canceling_pair(self, index: int, generator: int) -> bool:
-        if index < 0 or index > len(self.word):
+        if not self.check_insert(index):
             return False
         
         self.word.insert(index, generator)
@@ -25,52 +49,32 @@ class Braid:
         return True
 
     def remove_pair_at_index(self, index: int) -> bool:
-        if index < 0 or index >= len(self.word) - 1:
+        if not self.check_remove_pair(index):
             return False
         
-        if self.word[index] == -self.word[index + 1]:
-            del self.word[index]
-            del self.word[index]
-            return True
-        return False
+        del self.word[index]
+        del self.word[index]
+        return True
 
-    def reduce_global(self):
-        stack = []
-        for generator in self.word:
-            if stack and stack[-1] == -generator:
-                stack.pop()
-            else:
-                stack.append(generator)
-        
-        changed = len(stack) < len(self.word)
-        self.word = stack
-        return changed
-
-    def apply_commutation(self, index):
-        if index < 0 or index >= len(self.word) - 1:
+    def apply_commutation(self, index: int) -> bool:
+        if not self.check_commutation(index):
             return False
-            
+        
         gen_0 = self.word[index]
         gen_1 = self.word[index + 1]
         
-        if abs(abs(gen_0) - abs(gen_1)) >= 2:
-            self.word[index], self.word[index + 1] = gen_1, gen_0
-            return True
-        return False
-
-    def apply_braid_relation(self, index):
-        if index < 0 or index >= len(self.word) - 2:
+        self.word[index], self.word[index + 1] = gen_1, gen_0
+        return True
+    
+    def apply_braid_relation(self, index: int) -> bool:
+        if not self.check_braid_relation(index):
             return False
             
         gen_0 = self.word[index]
         gen_1 = self.word[index+1]
         gen_2 = self.word[index+2]
         
-        if gen_0 == gen_2 and abs(abs(gen_0) - abs(gen_1)) == 1:
-            if (gen_0 > 0 and gen_1 > 0) or (gen_0 < 0 and gen_1 < 0):
-                self.word[index] = gen_1
-                self.word[index+1] = gen_0
-                self.word[index+2] = gen_1
-                return True
-            
-        return False
+        self.word[index] = gen_1
+        self.word[index+1] = gen_0
+        self.word[index+2] = gen_1
+        return True

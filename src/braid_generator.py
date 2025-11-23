@@ -1,7 +1,11 @@
 import ast
 import random
 from typing import List, Optional
-from sage.all import BraidGroup
+
+try:
+    from sage.all import BraidGroup
+except ImportError:
+    print("invalid sage import")
 
 from .braid import Braid
 from .config import Configuration
@@ -36,7 +40,7 @@ class BraidGenerator:
                     gen_0, gen_1, gen_2 = braid.word[i], braid.word[i + 1], braid.word[i + 2]
 
                     if gen_0 == gen_2 and abs(abs(gen_0) - abs(gen_1)) == 1:
-                        if gen_0 * gen_1 > 0: # same sign
+                        if gen_0 * gen_1 > 0:
                             possible_moves.append(('r3', i))
 
                 for i in range(len(braid) - 1):
@@ -69,14 +73,9 @@ class BraidGenerator:
         with open(filepath, 'w') as file:
             file.write(f"{count},{self.n_strands},{crossings},{difficulty}\n")
 
-            generated = 0
-            while generated < count:
+            for _ in range(count):
                 word = self.generate_braid(crossings, difficulty).word
-                braid = self.B(word)
-
-                if braid.is_one():
-                    generated += 1
-                    file.write(f"{word}\n")
+                file.write(f"{word}\n")
 
         print("done")
 
