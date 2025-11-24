@@ -8,18 +8,20 @@ from .config import Configuration
 from .braid_generator import BraidGenerator
 
 class BraidEnv(gym.Env):
-    def __init__(self, dataset_path: str, n_strands: int, max_len: int, config: Configuration):
+    def __init__(self, dataset_path: str, n_strands: int, max_len: int, config: Configuration, finetune_mode: bool = False):
         super().__init__()
 
         self.n_strands = n_strands
         self.max_len = max_len
         self.config = config
+        self.finetune_mode = finetune_mode
         
         self.dataset = BraidGenerator.load_dataset(dataset_path)
         if not self.dataset:
             print(f"Warning: No data found at {dataset_path}")
             
         self.current_braid = None
+        self.current_steps = 0
         
         # Flattened Action Space: 4 * max_len
         # 0..max_len-1          : Commute
@@ -45,6 +47,7 @@ class BraidEnv(gym.Env):
             if len(self.current_braid) > self.max_len:
                 self.current_braid.word = self.current_braid.word[:self.max_len]
         
+        self.current_steps = 0
         return self._get_obs(), {}
 
     def _get_obs(self):
@@ -57,7 +60,6 @@ class BraidEnv(gym.Env):
 
     def action_masks(self):
         mask = np.zeros(4 * self.max_len, dtype=bool)
-        
         curr_len = len(self.current_braid)
 
         for i in range(curr_len - 1):
@@ -78,6 +80,9 @@ class BraidEnv(gym.Env):
         if curr_len < self.max_len - 2:
             for i in range(curr_len + 1):
                 mask[offset_ins + i] = True
+        
+        if not np.any(mask):
+            mask[offset_ins] = True
              
         return mask
 
@@ -88,16 +93,14 @@ class BraidEnv(gym.Env):
         prev_len = len(self.current_braid)
         success = False
 
-        if move_type == 0: 
-            success = self.current_braid.apply_commutation(index)
-        elif move_type == 1: 
-            success = self.current_braid.apply_braid_relation(index)
-        elif move_type == 2: 
-            success = self.current_braid.remove_pair_at_index(index)
+        if move_type == 0: success = self.current_braid.apply_commutation(index)
+        elif move_type == 1: success = self.current_braid.apply_braid_relation(index)
+        elif move_type == 2: success = self.current_braid.remove_pair_at_index(index)
         elif move_type == 3:
             gen = random.randint(1, self.n_strands - 1)
             success = self.current_braid.insert_canceling_pair(index, gen)
 
+        self.current_steps += 1
         reward = self.config.REWARD_STEP
         
         if not success:
@@ -109,10 +112,28 @@ class BraidEnv(gym.Env):
             else: reward += 0.0
 
             if new_len == 0:
-                return self._get_obs(), self.config.REWARD_SOLVED, True, False, {"success": True}
+                bonus = 0.0
+                if self.finetune_mode and hasattr(self.current_braid, 'optimal_steps'):
+                    opt = self.current_braid.optimal_steps
+
+                    if opt > 0:
+                        if self.current_steps <= opt:
+                            bonus = 50.0
+                        elif self.current_steps <= opt + 2:
+                            bonus = 10.0
+
+                return self._get_obs(), self.config.REWARD_SOLVED + bonus, True, False, {
+                    "success": True, 
+                    "is_success": True, 
+                    "move_type": move_type
+                }
 
         truncated = len(self.current_braid) >= self.max_len
         if truncated:
             reward += self.config.REWARD_INVALID * 2
 
-        return self._get_obs(), reward, False, truncated, {"success": success}
+        return self._get_obs(), reward, False, truncated, {
+            "success": success, 
+            "is_success": False, 
+            "move_type": move_type
+        }
