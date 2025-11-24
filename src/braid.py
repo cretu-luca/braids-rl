@@ -4,12 +4,16 @@ class Braid:
     def __init__(self, word: list[int], n_strands: int):
         self.word = list(word)
         self.n_strands = n_strands
+        self.optimal_steps = -1 
 
     def __len__(self):
         return len(self.word)
     
     def copy(self):
-        return Braid(list(self.word), self.n_strands)
+        new_b = Braid(list(self.word), self.n_strands)
+        if hasattr(self, 'optimal_steps'):
+            new_b.optimal_steps = self.optimal_steps
+        return new_b
 
     def get_padded_word(self, max_len: int) -> List[int]:
         word = self.word[:max_len]
